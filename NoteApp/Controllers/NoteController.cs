@@ -14,7 +14,7 @@ namespace NoteApp.Controllers
         {
             var userId = Guid.Parse(User.Identity.GetUserId());
             var service = new NoteService(userId);
-            var model = new NoteListItem[0];
+            var model = service.GetNotes();
 
             return View(model);
         }
@@ -33,12 +33,33 @@ namespace NoteApp.Controllers
                 return View(model);
             }
 
+            var service = CreateNoteService();
+
+            if (service.CreateNote(model))
+            {
+                TempData["SaveResult"] = "Your note was created.";
+
+                return RedirectToAction("Index");
+            };
+
+            ModelState.AddModelError("", "Note could not be created.");
+
+            return View(model);
+        }
+
+        private NoteService CreateNoteService()
+        {
             var userId = Guid.Parse(User.Identity.GetUserId());
             var service = new NoteService(userId);
+            return service;
+        }
 
-            service.CreateNote(model);
+        public ActionResult NoteDetails(int id)
+        {
+            var svc = CreateNoteService();
+            var model = svc.GetNoteById();
 
-            return RedirectToAction("Index");
+            return View(model);
         }
     }
 }
